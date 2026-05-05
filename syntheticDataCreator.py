@@ -18,6 +18,15 @@ class Sample:
 
     aggressivePlaystyle: bool
 
+    #labels
+    consecutive: bool
+    aoe: bool
+    dot: bool
+
+    dodge: bool
+    block_parry: bool
+    #speacial: bool
+
     def setAttackFeatures(self):
         self.attackCount = np.random.randint(1, 91)
         self.heavyAttackCount = np.random.randint(0, self.attackCount + 1)
@@ -50,8 +59,67 @@ class Sample:
         lowDefenseValueCount = defenseValues.count(0)
         self.aggressivePlaystyle = (self.ac_Categorized == 2 and highDefenseValueCount == 0) or (
                                     self.ac_Categorized == 1 and lowDefenseValueCount == 0)
+
+    def getDominantFeatures(self, isAttack):
+        dominantValues = []
+
+        if isAttack:
+            features = [self.hac_Categorized, self.lac_Categorized]
+            dominantValue = max(features)
+
+            if dominantValue == self.hac_Categorized:
+                dominantValues.append("HAC")
+            if dominantValue == self.lac_Categorized:
+                dominantValues.append("LAC")
+        else:
+            features = [self.bc_Categorized, self.dc_Categorized, self.pc_Categorized]
+            dominantValue = max(features)
+
+            if dominantValue == self.bc_Categorized:
+                dominantValues.append("BC")
+            if dominantValue == self.dc_Categorized:
+                dominantValues.append("DC")
+            if dominantValue == self.pc_Categorized:
+                dominantValues.append("PC")
         
+        return dominantValues
+    
+    def setAttackLabels(self):
+        dominantDefense = self.getDominantFeatures(isAttack=False)
+        self.consecutive = False
+        self.aoe = False
+        self.dot = False
+
+        if("BC" in dominantDefense):
+            self.dot = True
+        if("DC" in dominantDefense):
+            self.aoe = True
+        if("PC" in dominantDefense):
+            self.consecutive = True
+
+    def setDefenseLabels(self):
+        dominantAttack = self.getDominantFeatures(isAttack=True)
+        self.block_parry = False
+        self.dodge = False
+
+        if("HAC" in dominantAttack):
+            self.dodge = True
+        if("LAC" in dominantAttack):
+            self.block_parry = True
+
+    def printSample(self):
+        print(f"Attack Count: {self.attackCount}, Heavy Attack Count: {self.heavyAttackCount}, Light Attack Count: {self.lightAttackCount}")
+        print(f"Dodge Count: {self.dodgeCount}, Block Count: {self.blockCount}, Parry Count: {self.parryCount}")
+        print(f"Aggressive Playstyle: {self.aggressivePlaystyle}")
+        print(f"Attack Categories: AC: {self.ac_Categorized}, HAC: {self.hac_Categorized}, LAC: {self.lac_Categorized}")
+        print(f"Defense Categories: DC: {self.dc_Categorized}, BC: {self.bc_Categorized}, PC: {self.pc_Categorized}")
+        print(f"Combat Labels: Dodge: {self.dodge}, Block/Parry: {self.block_parry}")
+        print(f"Attack Labels: Consecutive: {self.consecutive}, AoE: {self.aoe}, DoT: {self.dot}")
+
     def __init__(self):
         self.setAttackFeatures()
         self.setDefenseFeatures()
         self.setPlaystyle()
+        self.setAttackLabels()
+        self.setDefenseLabels()
+        self.printSample()
