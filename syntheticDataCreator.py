@@ -142,6 +142,38 @@ class Sample:
         self.setDefenseLabels()
         self.printSample()
 
+class Numerical_Features:
+    dodgeCount: int
+    blockCount: int
+    parryCount: int
+
+    attackCount: int
+    heavyAttackCount: int
+    lightAttackCount: int
+
+    def setAttackFeatures(self):
+        self.attackCount = np.random.randint(1, 91)
+        self.heavyAttackCount = np.random.randint(0, self.attackCount + 1)
+        self.lightAttackCount = self.attackCount - self.heavyAttackCount
+
+    def setDefenseFeatures(self):
+        self.dodgeCount = np.random.randint(0, 10)
+        self.blockCount = np.random.randint(0, 10)
+        self.parryCount = np.random.randint(0, 10)
+
+        meanDefenseValue = (self.dodgeCount + self.blockCount + self.parryCount) / 3
+        if meanDefenseValue > 7:
+            self.setDefenseFeatures()
+
+    def printSample(self):
+        print(f"Attack Count: {self.attackCount}, Heavy Attack Count: {self.heavyAttackCount}, Light Attack Count: {self.lightAttackCount}")
+        print(f"Dodge Count: {self.dodgeCount}, Block Count: {self.blockCount}, Parry Count: {self.parryCount}")
+
+    def __init__(self):
+        self.setAttackFeatures()
+        self.setDefenseFeatures()
+        self.printSample()
+
 def create_dataset(n_rows, filename="Dataset/dataset.csv"):
     samples = [s.to_dict() for s in (Sample() for _ in range(n_rows))]
     with open("Dataset/dataset.json", "w") as f:
