@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import json
 
 class Sample:
     dodgeCount: int
@@ -26,6 +27,23 @@ class Sample:
     dodge: bool
     block_parry: bool
     #speacial: bool
+
+    def to_dict(self):
+        return {
+            "dc_Categorized": self.dc_Categorized,
+            "bc_Categorized": self.bc_Categorized,
+            "pc_Categorized": self.pc_Categorized,
+            "ac_Categorized": self.ac_Categorized,
+            "hac_Categorized": self.hac_Categorized,
+            "lac_Categorized": self.lac_Categorized,
+            "aggressivePlaystyle": self.aggressivePlaystyle,
+
+            "consecutive": self.consecutive,
+            "aoe": self.aoe,
+            "dot": self.dot,
+            "dodge": self.dodge,
+            "block_parry": self.block_parry
+        }
 
     def setAttackFeatures(self):
         self.attackCount = np.random.randint(1, 91)
@@ -123,3 +141,12 @@ class Sample:
         self.setAttackLabels()
         self.setDefenseLabels()
         self.printSample()
+
+def create_dataset(n_rows, filename="Dataset/dataset.csv"):
+    samples = [s.to_dict() for s in (Sample() for _ in range(n_rows))]
+    with open("Dataset/dataset.json", "w") as f:
+        json.dump(samples, f, indent=4)
+
+    # Sonradan CSV’ye dönüştür
+    df = pd.read_json("Dataset/dataset.json")
+    df.to_csv(filename, index=False)

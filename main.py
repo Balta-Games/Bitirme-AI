@@ -1,3 +1,3 @@
 import syntheticDataCreator as sdc
 
-mySample = sdc.Sample()
+sdc.create_dataset(1000)
