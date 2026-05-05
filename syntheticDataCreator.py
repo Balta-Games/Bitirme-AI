@@ -1,6 +1,11 @@
 import pandas as pd
 import numpy as np
 import json
+from enum import Enum
+
+LOW = 0
+MEDIUM = 1
+HIGH = 2
 
 class Sample:
     dodgeCount: int
@@ -151,27 +156,95 @@ class Numerical_Features:
     heavyAttackCount: int
     lightAttackCount: int
 
-    def setAttackFeatures(self):
-        self.attackCount = np.random.randint(1, 91)
+    def setAttackFeatures_Random(self):
+        self.attackCount = np.random.randint(1, 101)
         self.heavyAttackCount = np.random.randint(0, self.attackCount + 1)
         self.lightAttackCount = self.attackCount - self.heavyAttackCount
 
-    def setDefenseFeatures(self):
-        self.dodgeCount = np.random.randint(0, 10)
-        self.blockCount = np.random.randint(0, 10)
-        self.parryCount = np.random.randint(0, 10)
+    def setAttackFeatures(self, attack, heavyAttack, lightAttack):
+        self.attackCount = attack
+        self.heavyAttackCount = heavyAttack
+        self.lightAttackCount = lightAttack
+
+    def setDefenseFeatures_Random(self):
+        self.dodgeCount = np.random.randint(0, 101)
+        self.blockCount = np.random.randint(0, 101)
+        self.parryCount = np.random.randint(0, 101)
 
         meanDefenseValue = (self.dodgeCount + self.blockCount + self.parryCount) / 3
-        if meanDefenseValue > 7:
+        if meanDefenseValue > 70:
             self.setDefenseFeatures()
+
+    def setDefenseFeatures(self, dodge, block, parry):
+        self.dodgeCount = dodge
+        self.blockCount = block
+        self.parryCount = parry
 
     def printSample(self):
         print(f"Attack Count: {self.attackCount}, Heavy Attack Count: {self.heavyAttackCount}, Light Attack Count: {self.lightAttackCount}")
         print(f"Dodge Count: {self.dodgeCount}, Block Count: {self.blockCount}, Parry Count: {self.parryCount}")
 
-    def __init__(self):
-        self.setAttackFeatures()
-        self.setDefenseFeatures()
+    def __init__(self, feature=None):
+        if(feature == None):
+            self.setAttackFeatures_Random(feature['attack'],feature['heavyAttack'],feature['lightAttack'])
+            self.setDefenseFeatures_Random(feature['dodge'],feature['block'],feature['parry'])
+        else:
+            self.setAttackFeatures()
+            self.setDefenseFeatures()
+        self.printSample()
+
+class Categorical_Features:
+    dodge: int
+    block: int
+    parry: int
+
+    attackTotal: int
+    heavyAttack: int
+    lightAttack: int
+
+    def setAttackFeatures_Random(self):
+        self.attackTotal = np.random.randint(LOW, HIGH+1)
+        self.heavyAttack = np.random.randint(LOW, HIGH+1)
+        self.lightAttack = LOW if self.heavyAttack == HIGH else (MEDIUM if self.heavyAttack == MEDIUM else HIGH)
+    
+    def setAttackFeatures(self, heavyAttackCount, lightAttackCount):
+        attackCount = heavyAttackCount + lightAttackCount
+        heavyAttackPercentage = heavyAttackCount / attackCount
+
+        self.attackTotal = np.random.randint(0, 3)
+
+        if(heavyAttackPercentage <= 0.3):
+            self.heavyAttack = LOW
+            self.lightAttack = HIGH
+        elif(heavyAttackPercentage <= 0.7):
+            self.heavyAttack = MEDIUM
+            self.lightAttack = MEDIUM
+        else:
+            self.heavyAttack = HIGH
+            self.lightAttack = LOW
+
+    def setDefenseFeatures_Random(self):
+        self.dodge = np.random.randint(LOW, HIGH+1)
+        self.block = np.random.randint(LOW, HIGH+1)
+        self.parry = np.random.randint(LOW, HIGH+1)
+
+        defenseValues = [self.dodge, self.block, self.parry]
+        highDefenseValueCount = defenseValues.count(HIGH)
+        if highDefenseValueCount > 2:
+            self.setDefenseFeatures_Random()
+
+    def printSample(self):
+        print(f"Attack: {self.attackTotal}, Heavy Attack: {self.heavyAttack}, Light Attack: {self.lightAttack}")
+        print(f"Dodge: {self.dodge}, Block: {self.block}, Parry: {self.parry}")
+
+    def __init__(self, heavyAttackCount=None, lightAttackCount=None):
+        if(heavyAttackCount == None):
+            self.setAttackFeatures_Random()
+            self.setDefenseFeatures_Random()
+        else:
+            self.setAttackFeatures(heavyAttackCount,lightAttackCount)
+            self.setDefenseFeatures_Random()
+
         self.printSample()
 
 def create_dataset(n_rows, filename="Dataset/dataset.csv"):
