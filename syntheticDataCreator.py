@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import json
-from enum import Enum
 
 LOW = 0
 MEDIUM = 1
@@ -180,17 +179,42 @@ class Numerical_Features:
         self.blockCount = block
         self.parryCount = parry
 
+    def getDominantFeatures(self):
+        dominantAttackValues = []
+        dominantDefenseValues = []
+        
+        attackFeatures = [self.heavyAttackCount, self.lightAttackCount]
+        dominantValue = max(attackFeatures)
+
+        if dominantValue == self.heavyAttackCount:
+            dominantAttackValues.append("Heavy Attack")
+        if dominantValue == self.lightAttackCount:
+            dominantAttackValues.append("Light Attack")
+    
+        defenseFeatures = [self.dodgeCount, self.blockCount, self.parryCount]
+        dominantValue = max(defenseFeatures)
+
+        if dominantValue == self.dodgeCount:
+            dominantDefenseValues.append("Dodge")
+        if dominantValue == self.blockCount:
+            dominantDefenseValues.append("Block")
+        if dominantValue == self.parryCount:
+            dominantDefenseValues.append("Parry")
+
+        dominantFeatures = {"attack": dominantAttackValues, "defense": dominantDefenseValues}
+        return dominantFeatures
+
     def printSample(self):
         print(f"Attack Count: {self.attackCount}, Heavy Attack Count: {self.heavyAttackCount}, Light Attack Count: {self.lightAttackCount}")
         print(f"Dodge Count: {self.dodgeCount}, Block Count: {self.blockCount}, Parry Count: {self.parryCount}")
 
     def __init__(self, feature=None):
         if(feature == None):
-            self.setAttackFeatures_Random(feature['attack'],feature['heavyAttack'],feature['lightAttack'])
-            self.setDefenseFeatures_Random(feature['dodge'],feature['block'],feature['parry'])
+            self.setAttackFeatures_Random()
+            self.setDefenseFeatures_Random()
         else:
-            self.setAttackFeatures()
-            self.setDefenseFeatures()
+            self.setAttackFeatures(feature['attack'],feature['heavyAttack'],feature['lightAttack'])
+            self.setDefenseFeatures(feature['dodge'],feature['block'],feature['parry'])
         self.printSample()
 
 class Categorical_Features:
@@ -233,6 +257,31 @@ class Categorical_Features:
         if highDefenseValueCount > 2:
             self.setDefenseFeatures_Random()
 
+    def getDominantFeatures(self):
+        dominantAttackValues = []
+        dominantDefenseValues = []
+        
+        attackFeatures = [self.heavyAttack, self.lightAttack]
+        dominantValue = max(attackFeatures)
+
+        if dominantValue == self.heavyAttack:
+            dominantAttackValues.append("Heavy Attack")
+        if dominantValue == self.lightAttack:
+            dominantAttackValues.append("Light Attack")
+    
+        defenseFeatures = [self.dodge, self.block, self.parry]
+        dominantValue = max(defenseFeatures)
+
+        if dominantValue == self.dodge:
+            dominantDefenseValues.append("Dodge")
+        if dominantValue == self.block:
+            dominantDefenseValues.append("Block")
+        if dominantValue == self.parry:
+            dominantDefenseValues.append("Parry")
+
+        dominantFeatures = {"attack": dominantAttackValues, "defense": dominantDefenseValues}
+        return dominantFeatures
+
     def printSample(self):
         print(f"Attack: {self.attackTotal}, Heavy Attack: {self.heavyAttack}, Light Attack: {self.lightAttack}")
         print(f"Dodge: {self.dodge}, Block: {self.block}, Parry: {self.parry}")
@@ -246,6 +295,39 @@ class Categorical_Features:
             self.setDefenseFeatures_Random()
 
         self.printSample()
+
+class Labels:
+    consecutive: bool
+    aoe: bool
+    dot: bool
+
+    dodge: bool
+    block_parry: bool
+
+    def setAttackLabels(self, dominantDefense):
+        self.consecutive = False
+        self.aoe = False
+        self.dot = False
+
+        if("BC" in dominantDefense):
+            self.dot = True
+        if("DC" in dominantDefense):
+            self.aoe = True
+        if("PC" in dominantDefense):
+            self.consecutive = True
+
+    def setDefenseLabels(self, dominantAttack):
+        self.block_parry = False
+        self.dodge = False
+
+        if("HAC" in dominantAttack):
+            self.dodge = True
+        if("LAC" in dominantAttack):
+            self.block_parry = True
+
+    def __init__(self, dominantFeatures):
+        self.setAttackLabels(dominantFeatures["defense"])
+        self.setDefenseLabels(dominantFeatures["attack"])
 
 def create_dataset(n_rows, filename="Dataset/dataset.csv"):
     samples = [s.to_dict() for s in (Sample() for _ in range(n_rows))]
