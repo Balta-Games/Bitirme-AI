@@ -21,21 +21,21 @@ def save_model(kmeans, scaler):
     joblib.dump(kmeans, 'Models/Kmeans/model.joblib')
     joblib.dump(scaler, 'Models/Kmeans/scaler.joblib')
 
-def transform_model2ONNX():
+def transform_model2cs():
     kmeans_model = joblib.load('Models/Kmeans/model.joblib')
     kmeans_scaler = joblib.load('Models/Kmeans/scaler.joblib')
 
-    #Veriniz kaç sütundan oluşuyorsa (Örn: 4 sütun) buraya yazın
-    initial_type = [('float_input', FloatTensorType([None, 5]))] 
-
-    pipeline = Pipeline([('scaler', kmeans_scaler), ('kmeans', kmeans_model)])
-    onnx_kmeans = convert_sklearn(pipeline, initial_types=initial_type)
-
-    with open("Models/Kmeans/pipeline.onnx", "wb") as f:
-        f.write(onnx_kmeans.SerializeToString())
+    with open("Models/Kmeans/values.txt", "w") as f:
+        f.write("--- SCALER MEAN ---" + "\n")
+        f.write(str(list(kmeans_scaler.mean_)) + "\n\n")
+        f.write("--- SCALER VARIANCE ---" + "\n")
+        f.write(str(list(kmeans_scaler.var_)) + "\n\n")
+        f.write("--- KMEANS CENTROIDS ---" + "\n")
+        for i, center in enumerate(kmeans_model.cluster_centers_):
+            f.write(f"Cluster {i}: {list(center)}\n")
 
 #-------------------------------------------------------------------------------
 
 #kmeans_model, scaler = train_kmeans('Dataset/soulslike_500.csv')
 #save_model(kmeans_model, scaler)
-transform_model2ONNX()
+transform_model2cs()

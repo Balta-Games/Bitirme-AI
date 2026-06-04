@@ -2,9 +2,7 @@ import xgboost as xgb
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, f1_score
 import pandas as pd
-import joblib
-import onnxmltools
-from onnxmltools.convert.common.data_types import FloatTensorType
+import m2cgen as m2c
 
 def train_xgboost(file_path):
     df = pd.read_csv(file_path)
@@ -33,19 +31,25 @@ def train_xgboost(file_path):
 def save_model(model):
     model.save_model('Models/XGBoost/model.json')
 
-def transform_model2ONNX():
+def transform_model2cs():
     xgb_model = xgb.XGBClassifier()
     xgb_model.load_model('Models/XGBoost/model.json')
 
-    #Veriniz kaç sütundan oluşuyorsa (Örn: 4 sütun) buraya yazın
-    initial_type = [('float_input', FloatTensorType([None, 5]))]
+    if hasattr(xgb_model, 'base_score') and isinstance(xgb_model.base_score, list):
+        xgb_model.base_score = xgb_model.base_score[0]
+    '''elif hasattr(xgb_model, '_Booster') and hasattr(xgb_model._Booster, 'meta_info') and 'base_score' in xgb_model._Booster.meta_info:
+        # Bazı XGBoost versiyonlarında base_score booster meta_info içinde saklanabilir
+        try:
+            xgb_model.base_score = float(xgb_model._Booster.meta_info['base_score'])
+        except (ValueError, TypeError):
+            pass'''
 
-    onnx_xgb = onnxmltools.convert_xgboost(xgb_model, initial_types=initial_type)
-    with open("Models/XGBoost/model.onnx", "wb") as f:
-        f.write(onnx_xgb.SerializeToString())
+    csharp_code = m2c.export_to_c_sharp(xgb_model)
+    with open("Models/XGBoost/Predictor.cs", "w") as f:
+        f.write(csharp_code)
 
 #-------------------------------------------------------------------------
 
-model = train_xgboost('Dataset/soulslike_500.csv')
-save_model(model)
-transform_model2ONNX()
+#model = train_xgboost('Dataset/soulslike_500.csv')
+#save_model(model)
+transform_model2cs()
