@@ -1,13 +1,15 @@
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 import pandas as pd
 import m2cgen as m2c
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 def train_xgboost(file_path):
     df = pd.read_csv(file_path)
-    x = df.drop(columns=['is_won']) 
-    y = df['is_won']
+    x = df.drop(columns=['label']) 
+    y = df['label']
 
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
 
@@ -26,6 +28,29 @@ def train_xgboost(file_path):
     print(f"Modelin Doğruluk Skoru (Accuracy): {accuracy * 100:.2f}%")
     print(f"Modelin F1 Skoru: {f1:.2f}")
 
+    # ------------------ DRAWING GRAPHIC ------------------
+    metrics = ['Accuracy', 'F1 Score']
+    scores = [accuracy, f1]
+    
+    plt.bar(metrics, scores, color=['#4CAF50', '#2196F3'], width=0.4)
+    plt.ylim(0, 1.0) 
+    
+    for i, v in enumerate(scores):
+        plt.text(i, v + 0.02, f"{v:.2f}", ha='center', fontweight='bold')
+        
+    plt.title('Model Performance Metrics')
+    plt.ylabel('Score')
+    plt.savefig('Analytics/model_metrics.png') 
+    plt.close()                       
+
+    cm = confusion_matrix(y_test, y_pred)
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['0', '1'], yticklabels=['0', '1'])
+    plt.title('Confusion Matrix')
+    plt.xlabel('Prediction')
+    plt.ylabel('Actual')
+    plt.savefig('Analytics/confusion_matrix.png') 
+    plt.close()
+    # -----------------------------------------------------
     return model
 
 def save_model(model):
@@ -50,6 +75,6 @@ def transform_model2cs():
 
 #-------------------------------------------------------------------------
 
-#model = train_xgboost('Dataset/soulslike_500.csv')
+model = train_xgboost('Dataset/player_data_labeled.csv')
 #save_model(model)
-transform_model2cs()
+#transform_model2cs()
