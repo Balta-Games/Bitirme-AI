@@ -34,16 +34,16 @@ def plot_clusters(df_scaled, kmeans_model):
 
 def plot_elbow_method(df_scaled):
     wcss = [] 
-    k_range = range(1, 15) 
+    k_range = range(1, 11) 
     
     for k in k_range:
         km = KMeans(n_clusters=k, random_state=42)
         km.fit(df_scaled)
         wcss.append(km.inertia_)
         
-    plt.figure(figsize=(15, 5))
+    plt.figure(figsize=(11, 5))
     plt.plot(k_range, wcss, marker='o', linestyle='--', color='b')
-    plt.title('EElbow Method')
+    plt.title('Elbow Method')
     plt.xlabel('Cluster Number (k)')
     plt.ylabel('WCSS (Inertia)')
     plt.grid(True)
@@ -68,7 +68,7 @@ def train_kmeans(file_path):
     scaler = StandardScaler()
     df_scaled = scaler.fit_transform(df)
 
-    kmeans = KMeans(n_clusters=8, random_state=42)
+    kmeans = KMeans(n_clusters=4, random_state=42)
     kmeans.fit(df_scaled)
 
     df['label'] = kmeans.labels_
@@ -99,6 +99,6 @@ def transform_model2cs():
 
 #-------------------------------------------------------------------------------
 
-kmeans_model, scaler = train_kmeans('Dataset/player_data_15000.csv')
+kmeans_model, scaler = train_kmeans('Dataset/player_data_expanded_5000.csv')
 #save_model(kmeans_model, scaler)
 #transform_model2cs()
